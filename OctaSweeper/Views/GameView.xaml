@@ -1,0 +1,64 @@
+﻿<Window x:Class="OctaSweeper.Views.GameView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="GameView" 
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize">
+    <Grid Background="LightSkyBlue">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid x:Name="HeaderGrid"
+              Grid.Row="0">
+            <Label Content="Classic MineSweeper"
+                   HorizontalAlignment="Center"/>
+        </Grid>
+        
+        <!--Spielfeld-->
+        <ListView x:Name="ItemsList"
+                  Grid.Row="1"
+                  ItemsSource="{Binding FieldList}"
+                  Width="{Binding GameWidth}"
+                  Height="{Binding GameHeight}"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                  BorderThickness="0">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListViewItem">
+                                <Border x:Name="border"
+                                        Margin="1"
+                                        BorderBrush="Blue" 
+                                        BorderThickness="1"
+                                        Height="30"
+                                        Width="30">
+                                    <Grid x:Name="content">
+                                        <Label Content="{Binding Value}"
+                                               HorizontalContentAlignment="Center"
+                                               VerticalContentAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding State}" Value="Bomb">
+                                        <Setter TargetName="border" Property="BorderBrush" Value="Red"></Setter>
+                                    </DataTrigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="content" Property="Background" Value="PaleGreen"></Setter>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+        </ListView>
+    </Grid>
+</Window>
