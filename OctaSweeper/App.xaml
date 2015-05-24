@@ -1,6 +1,7 @@
 ﻿<Application x:Class="OctaSweeper.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:OctaSweeper.Converter"
              xmlns:local="clr-namespace:OctaSweeper">
     <Application.Resources>
         <ResourceDictionary>
@@ -9,6 +10,9 @@
                     <local:AppBootstrapper x:Key="bootstrapper" />
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
+            
+            <converters:BooleanToVisibilityConverter x:Key="VisibleToCollapsed" VisibilityOnTrue="Visible" VisibilityOnFalse="Collapsed"/>
+            <converters:BooleanToVisibilityConverter x:Key="CollapsedToVisible" VisibilityOnTrue="Collapsed" VisibilityOnFalse="Visible"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

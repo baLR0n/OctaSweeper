@@ -1,6 +1,7 @@
 ﻿<Window x:Class="OctaSweeper.Views.GameView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:cal="http://www.caliburnproject.org"
         Title="GameView" 
         SizeToContent="WidthAndHeight"
         ResizeMode="NoResize">
@@ -9,18 +10,21 @@
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
+        
         <Grid x:Name="HeaderGrid"
               Grid.Row="0">
-            <Label Content="Classic MineSweeper"
+            <Label x:Name="HeaderLabel"
+                   Content="{Binding HeaderText}"
                    HorizontalAlignment="Center"/>
         </Grid>
         
         <!--Spielfeld-->
-        <ListView x:Name="ItemsList"
+        <ListView x:Name="MainField"
                   Grid.Row="1"
                   ItemsSource="{Binding FieldList}"
                   Width="{Binding GameWidth}"
                   Height="{Binding GameHeight}"
+                  IsEnabled="{Binding GameIsRunning}"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   ScrollViewer.VerticalScrollBarVisibility="Disabled"
                   BorderThickness="0">
@@ -35,18 +39,31 @@
                                         BorderThickness="1"
                                         Height="30"
                                         Width="30">
-                                    <Grid x:Name="content">
-                                        <Label Content="{Binding Value}"
-                                               HorizontalContentAlignment="Center"
-                                               VerticalContentAlignment="Center"/>
-                                    </Grid>
+                                    <ToggleButton x:Name="contentToggle"
+                                                  Content="{Binding Value}"
+                                                  Foreground="Transparent"
+                                                  IsChecked="{Binding IsChecked, Mode=OneWay}"
+                                                  HorizontalContentAlignment="Center"
+                                                  VerticalContentAlignment="Center"
+                                                  cal:Message.Attach="[Event Click] = [Action TryToOpen()];
+                                                  [Event MouseRightButtonUp] = [Action MarkAsBomb()]">
+                                    </ToggleButton>
+                                    
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <DataTrigger Binding="{Binding State}" Value="Bomb">
                                         <Setter TargetName="border" Property="BorderBrush" Value="Red"></Setter>
                                     </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsChecked}" Value="True">
+                                        <Setter TargetName="contentToggle" Property="Foreground" Value="Black"></Setter>
+                                        <Setter TargetName="contentToggle" Property="IsEnabled" Value="False"></Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsMarkedAsBomb}" Value="True">
+                                        <Setter TargetName="contentToggle" Property="Foreground" Value="Black"></Setter>
+                                        <Setter TargetName="contentToggle" Property="Content" Value="B"></Setter>
+                                    </DataTrigger>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="content" Property="Background" Value="PaleGreen"></Setter>
+                                        <Setter TargetName="contentToggle" Property="Background" Value="PaleGreen"></Setter>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
@@ -60,5 +77,17 @@
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
         </ListView>
+        
+        <!--Re-Start Button-->
+        <Button x:Name="RestartGame"
+                Content="Restart"
+                Visibility="{Binding GameIsRunning, Converter={StaticResource CollapsedToVisible}}"
+                Width="100"
+                Height="30"
+                Grid.Row="1"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+            
+        </Button>
     </Grid>
 </Window>
