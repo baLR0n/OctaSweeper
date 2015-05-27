@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using Caliburn.Micro;
 using OctaSweeper.Model;
+using OctaSweeper.ViewModel.Events;
 using PropertyChanged;
 
 namespace OctaSweeper.ViewModel.ViewModels
@@ -12,9 +16,19 @@ namespace OctaSweeper.ViewModel.ViewModels
     public class GameViewModel
     {
         /// <summary>
-        /// The event aggregator
+        /// The event aggregator.
         /// </summary>
         private readonly IEventAggregator eventAggregator;
+
+        /// <summary>
+        /// The main timer
+        /// </summary>
+        private Timer mainTimer;
+
+        /// <summary>
+        /// The old header
+        /// </summary>
+        private string oldHeader;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameViewModel"/> class.
@@ -24,6 +38,7 @@ namespace OctaSweeper.ViewModel.ViewModels
         public GameViewModel(IEventAggregator eventAggregator)
         {
             this.eventAggregator = eventAggregator;
+            this.HeaderText = "Classic MineSweeper";
 
             // Set default Map preferences if not already done.
             if (this.Rows == 0)
@@ -38,8 +53,8 @@ namespace OctaSweeper.ViewModel.ViewModels
             {
                 this.Bombs = 10;
             }
-            this.GameIsRunning = true;
 
+            this.GameIsRunning = true;
             this.SetUpGame();
         }
 
@@ -51,11 +66,30 @@ namespace OctaSweeper.ViewModel.ViewModels
         /// <param name="columns">The columns.</param>
         /// <param name="bombs">The amount of bombs.</param>
         [ImportingConstructor]
-        public GameViewModel(IEventAggregator eventAggregator, int rows, int columns, int bombs) : this(eventAggregator)
+        public GameViewModel(IEventAggregator eventAggregator, int rows, int columns, int bombs)
         {
+            this.eventAggregator = eventAggregator;
+            this.HeaderText = String.Format("Custom MineSweeper {0} x {1}", rows, columns);
+            
             this.Rows = rows;
             this.Columns = columns;
             this.Bombs = bombs;
+
+            this.GameIsRunning = true;
+            this.SetUpGame();
+        }
+
+        /// <summary>
+        /// Restarts the game.
+        /// </summary>
+        public void RestartGame()
+        {
+            // Reset timer.
+            mainTimer.Dispose();
+
+            this.GameIsRunning = true;
+            this.HeaderText = oldHeader;
+            this.SetUpGame();
         }
 
         /// <summary>
@@ -90,7 +124,19 @@ namespace OctaSweeper.ViewModel.ViewModels
             }
 
             // Set the values of the non-bomb fields.
-            for (int i = 0; i < this.Rows * this.Columns; i++)
+            this.SetFieldValues();
+
+            // Start timer.
+            this.Time = 0;
+            mainTimer = new Timer(this.Tick, "", new TimeSpan(0, 0, 1), new TimeSpan(0, 0, 0, 1));
+        }
+
+        /// <summary>
+        /// Sets the field values.
+        /// </summary>
+        private void SetFieldValues()
+        {
+            for (int i = 0; i < this.Rows*this.Columns; i++)
             {
                 if (this.FieldList[i].State == GameField.FieldState.Clear)
                 {
@@ -114,25 +160,40 @@ namespace OctaSweeper.ViewModel.ViewModels
                         this.FieldList[i].Value++;
                     }
 
-                    if (i + 1 < this.Rows * this.Columns && this.FieldList[i + 1].State == GameField.FieldState.Bomb)
+                    if (i + 1 < this.Rows*this.Columns && this.FieldList[i + 1].State == GameField.FieldState.Bomb)
                     {
                         this.FieldList[i].Value++;
                     }
 
                     // Lower fields.
-                    if ((i + this.Columns - 1) < this.Rows * this.Columns && this.FieldList[i + this.Columns - 1].State == GameField.FieldState.Bomb)
+                    if ((i + this.Columns - 1) < this.Rows*this.Columns &&
+                        this.FieldList[i + this.Columns - 1].State == GameField.FieldState.Bomb)
                     {
                         this.FieldList[i].Value++;
                     }
-                    if ((i + this.Columns) < this.Rows * this.Columns && this.FieldList[i + this.Columns].State == GameField.FieldState.Bomb)
+                    if ((i + this.Columns) < this.Rows*this.Columns &&
+                        this.FieldList[i + this.Columns].State == GameField.FieldState.Bomb)
                     {
                         this.FieldList[i].Value++;
                     }
-                    if ((i + this.Columns + 1) < this.Rows * this.Columns && this.FieldList[i + this.Columns + 1].State == GameField.FieldState.Bomb)
+                    if ((i + this.Columns + 1) < this.Rows*this.Columns &&
+                        this.FieldList[i + this.Columns + 1].State == GameField.FieldState.Bomb)
                     {
                         this.FieldList[i].Value++;
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Occurs at every tick of the main timer.
+        /// </summary>
+        /// <param name="data">The data.</param>
+        private void Tick(object data)
+        {
+            if (this.GameIsRunning)
+            {
+                this.Time++;
             }
         }
 
@@ -144,6 +205,7 @@ namespace OctaSweeper.ViewModel.ViewModels
         private void GameLost(object sender, EventArgs eventArgs)
         {
             this.GameIsRunning = false;
+            oldHeader = this.HeaderText;
             this.HeaderText = "Game Over!";
         }
 
@@ -154,7 +216,8 @@ namespace OctaSweeper.ViewModel.ViewModels
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void OnCheck(object sender, EventArgs e)
         {
-            if (!this.FieldList.Any(x => x.State == GameField.FieldState.Bomb && !x.IsMarkedAsBomb))
+            if (!this.FieldList.Any(x => x.State == GameField.FieldState.Bomb && !x.IsMarkedAsBomb)
+                && (!this.FieldList.Any(x => x.State == GameField.FieldState.Clear && x.IsMarkedAsBomb)))
             {
                 this.GameWon();
             }
@@ -166,17 +229,11 @@ namespace OctaSweeper.ViewModel.ViewModels
         private void GameWon()
         {
             this.GameIsRunning = false;
+            oldHeader = this.HeaderText;
             this.HeaderText = "Gewonnen!";
-        }
 
-        /// <summary>
-        /// Restarts the game.
-        /// </summary>
-        public void RestartGame()
-        {
-            this.GameIsRunning = true;
-            this.HeaderText = "Classic Minesweeper";
-            this.SetUpGame();
+            GameEndEvent endEvent = new GameEndEvent(this.Rows, this.Columns, this.Time);
+            eventAggregator.PublishOnUIThread(endEvent);
         }
 
         /// <summary>
@@ -202,6 +259,14 @@ namespace OctaSweeper.ViewModel.ViewModels
         /// The columns.
         /// </value>
         public int Columns { get; set; }
+
+        /// <summary>
+        /// Gets or sets the currently elapsed time since the start of the round.
+        /// </summary>
+        /// <value>
+        /// The score.
+        /// </value>
+        public int Time { get; private set; }
 
         /// <summary>
         /// Gets or sets the amount of bombs.

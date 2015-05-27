@@ -7,9 +7,78 @@
         Height="300" 
         Width="300">
     <Grid>
-        <Button x:Name="OpenGame"
-                Content="Open Game"
-                Width="100"
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"></RowDefinition>
+            <RowDefinition Height="30"></RowDefinition>
+            <RowDefinition Height="10"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="30"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Button x:Name="OpenClassicGame"
+                Grid.Row="1"
+                Content="Open Classic Game"
+                Width="120"
                 Height="25"/>
+        
+        <Label x:Name="HighScoreLabel"
+               Grid.Row="1"
+               Grid.Column="1"
+               Content="{Binding HighScore}" ContentStringFormat="HighScore: {0}"></Label>
+        
+        <Grid Grid.Row="3"
+              Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"></RowDefinition>
+                <RowDefinition Height="30"></RowDefinition>
+                <RowDefinition Height="30"></RowDefinition>
+                <RowDefinition Height="40"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
+            
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="2*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            
+            <!--Custom rows, columns and bombs-->
+            <TextBox x:Name="RowsTextBox"
+                        HorizontalAlignment="Right"
+                        MaxLength="4"
+                        Width="40"
+                        Height="25"
+                        Text="{Binding CustomRowAmount, Mode=TwoWay}"/>
+            <TextBox x:Name="ColumnsTextBox"
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        HorizontalAlignment="Right"
+                        MaxLength="4"
+                        Width="40"
+                        Height="25"
+                        Text="{Binding CustomColumnAmount, Mode=TwoWay}"/>
+            <TextBox x:Name="BombsTextBox"
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        HorizontalAlignment="Right"
+                        MaxLength="4"
+                        Width="40"
+                        Height="25"
+                        Text="{Binding CustomBombAmount, Mode=TwoWay}"/>
+            
+            <Label Grid.Row="0" Grid.Column="1" Content="Rows"/>
+            <Label Grid.Row="1" Grid.Column="1" Content="Columns"/>
+            <Label Grid.Row="2" Grid.Column="1" Content="Bombs"/>
+            
+            <Button x:Name="OpenCustomGame"
+                    Grid.Row="3"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Content="Open Custom Game"
+                    Height="30"
+                    Width="120"/>
+        </Grid>
     </Grid>
 </UserControl>

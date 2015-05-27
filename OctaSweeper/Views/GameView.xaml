@@ -8,6 +8,7 @@
     <Grid Background="LightSkyBlue">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
         
@@ -17,10 +18,18 @@
                    Content="{Binding HeaderText}"
                    HorizontalAlignment="Center"/>
         </Grid>
+        <Border Grid.Row="1"
+                BorderThickness="2"
+                HorizontalAlignment="Center">
+            <Label x:Name="TimeTextBlock"
+                   Margin="0, 3"
+                   Content="{Binding Time, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                   ContentStringFormat="Time: {0}"/>
+        </Border>
         
         <!--Spielfeld-->
         <ListView x:Name="MainField"
-                  Grid.Row="1"
+                  Grid.Row="2"
                   ItemsSource="{Binding FieldList}"
                   Width="{Binding GameWidth}"
                   Height="{Binding GameHeight}"
@@ -30,38 +39,80 @@
                   BorderThickness="0">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
+                    <Setter Property="OverridesDefaultStyle" Value="True"></Setter>
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="ListViewItem">
-                                <Border x:Name="border"
-                                        Margin="1"
-                                        BorderBrush="Blue" 
-                                        BorderThickness="1"
-                                        Height="30"
-                                        Width="30">
-                                    <ToggleButton x:Name="contentToggle"
-                                                  Content="{Binding Value}"
-                                                  Foreground="Transparent"
-                                                  IsChecked="{Binding IsChecked, Mode=OneWay}"
-                                                  HorizontalContentAlignment="Center"
-                                                  VerticalContentAlignment="Center"
-                                                  cal:Message.Attach="[Event Click] = [Action TryToOpen()];
-                                                  [Event MouseRightButtonUp] = [Action MarkAsBomb()]">
-                                    </ToggleButton>
-                                    
-                                </Border>
+                                <Grid>
+                                    <Border x:Name="border"
+                                            Margin="1"
+                                            BorderBrush="Blue" 
+                                            BorderThickness="1"
+                                            Height="30"
+                                            Width="30">
+                                        <ToggleButton x:Name="contentToggle"
+                                                      BorderThickness="1"
+                                                      BorderBrush="LightSteelBlue"
+                                                      IsChecked="{Binding IsChecked, Mode=OneWay}"
+                                                      HorizontalContentAlignment="Center"
+                                                      VerticalContentAlignment="Center"
+                                                      cal:Message.Attach="[Event Click] = [Action TryToOpen()];
+                                                      [Event MouseRightButtonUp] = [Action MarkAsBomb()]"/>
+                                    </Border>
+                                    <Label x:Name="valueLabel"
+                                           Visibility="Hidden"
+                                           Content="{Binding Value}"
+                                           HorizontalContentAlignment="Center"
+                                           VerticalContentAlignment="Center"/>
+                                    <Label x:Name="bombLabel"
+                                           Content="B"
+                                           Visibility="Hidden"
+                                           HorizontalContentAlignment="Center"
+                                           VerticalContentAlignment="Center"
+                                           cal:Message.Attach="[Event MouseRightButtonUp] = [Action MarkAsBomb()]"/>
+                                </Grid>
                                 <ControlTemplate.Triggers>
                                     <DataTrigger Binding="{Binding State}" Value="Bomb">
                                         <Setter TargetName="border" Property="BorderBrush" Value="Red"></Setter>
                                     </DataTrigger>
-                                    <DataTrigger Binding="{Binding IsChecked}" Value="True">
-                                        <Setter TargetName="contentToggle" Property="Foreground" Value="Black"></Setter>
-                                        <Setter TargetName="contentToggle" Property="IsEnabled" Value="False"></Setter>
+                                    <!--Colors for different states-->
+                                    <DataTrigger Binding="{Binding Value}" Value="0">
+                                        <Setter TargetName="valueLabel" Property="Foreground" Value="Transparent"></Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Value}" Value="1">
+                                        <Setter TargetName="valueLabel" Property="Foreground" Value="Blue"></Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Value}" Value="2">
+                                        <Setter TargetName="valueLabel" Property="Foreground" Value="Green"></Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Value}" Value="3">
+                                        <Setter TargetName="valueLabel" Property="Foreground" Value="OrangeRed"></Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Value}" Value="4">
+                                        <Setter TargetName="valueLabel" Property="Foreground" Value="Yellow"></Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Value}" Value="5">
+                                        <Setter TargetName="valueLabel" Property="Foreground" Value="SaddleBrown"></Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Value}" Value="6">
+                                        <Setter TargetName="valueLabel" Property="Foreground" Value="LightSlateGray"></Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Value}" Value="7">
+                                        <Setter TargetName="valueLabel" Property="Foreground" Value="HotPink"></Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Value}" Value="8">
+                                        <Setter TargetName="valueLabel" Property="Foreground" Value="MediumSlateBlue"></Setter>
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding IsMarkedAsBomb}" Value="True">
-                                        <Setter TargetName="contentToggle" Property="Foreground" Value="Black"></Setter>
-                                        <Setter TargetName="contentToggle" Property="Content" Value="B"></Setter>
+                                        <Setter TargetName="bombLabel" Property="Visibility" Value="Visible"></Setter>
                                     </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsChecked}" Value="True">
+                                        <Setter TargetName="valueLabel" Property="Visibility" Value="Visible"></Setter>
+                                        <Setter TargetName="contentToggle" Property="IsEnabled" Value="False"></Setter>
+                                    </DataTrigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter TargetName="contentToggle" Property="Background" Value="Transparent"></Setter>
+                                    </Trigger>
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter TargetName="contentToggle" Property="Background" Value="PaleGreen"></Setter>
                                     </Trigger>
@@ -80,11 +131,11 @@
         
         <!--Re-Start Button-->
         <Button x:Name="RestartGame"
+                Grid.Row="2"
                 Content="Restart"
                 Visibility="{Binding GameIsRunning, Converter={StaticResource CollapsedToVisible}}"
                 Width="100"
                 Height="30"
-                Grid.Row="1"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center">
             
